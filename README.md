@@ -1,5 +1,5 @@
 # Web3Ds
-web3d panorama/model viewer via three.js
+web3d panorama/model viewer via three.js [Previews](https://blog.2broear.com/goods)
 
 ### MAIN FEAT
 - Equidistant cylindrical projection
