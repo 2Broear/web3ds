@@ -19,7 +19,7 @@ npm start
 ```
 
 ## 3d scene viewer
-load image(image/video) as [3d-panorama views](https://node.2broear.com/);
+load image(image/video) as [3d-panorama views](https://node.2broear.com/?texture&entry&model);
 
 ![Preview](https://raw.githubusercontent.com/2Broear/web3ds/refs/heads/main/screenshot/panorama-map.gif "3d-model-viewer")
 
