@@ -1,11 +1,12 @@
 # Web3Ds
 web3d panorama/model viewer via three.js
+
 ### MAIN FEAT
 - Equidistant cylindrical projection
 - GLB/GLTF 3D Model (DRACOLoader)
 - Multi Scene Map Switchs
 - Render Performance Optimization
-- Custom Background Scene / Entry Points / Scene Context / Camera Transform Animation etc
+- Custom Scene(Background Src / Environment Images Array) / Entry Points Args / Scene Context / Camera Transform Animation etc..
 
 ## 3d scene viewer
 load image(image/video) as [3d-panorama views](https://node.2broear.com/);
