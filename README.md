@@ -8,7 +8,7 @@ web3d panorama/model viewer via three.js
 - Custom Scene(Background Src / Environment Images Array) / Entry Points Args / Scene Context / Camera Transform Animation etc..
 
 ### QUICK START
-Run one of these scripts on Node.js CLI.
+Run one of these scripts on Node.js CLI, Based on Webpack.
 ```
 // prod
 npm run build
