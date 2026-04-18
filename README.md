@@ -10,14 +10,19 @@ web3d panorama/model viewer via three.js [Previews](https://blog.2broear.com/goo
 ### QUICK START
 Run one of these scripts on Node.js CLI, Based on Webpack.
 
-```
-// prod
+```javascript
 npm run build
 
-// dev(9001/9002)
+// dev server (9001/9002)
 npm start
 ```
-
+#### Options
+Get query parameters
+```javascript
+@texture;  // custom scene map src(relative path)
+@enry;     // specify scene entry point(local spots)
+@model;    // load local model(glb/gltf) into scene
+```
 ## 3d scene viewer
 load image(image/video) as [3d-panorama views](https://node.2broear.com/?texture&entry&model);
 
@@ -28,7 +33,7 @@ load model(gltf/glb) as [3d-model views](https://node.2broear.com/?texture&entry
 
 ![Preview](https://raw.githubusercontent.com/2Broear/web3ds/refs/heads/main/screenshot/3d-model-view.gif "3d-model-viewer")
 
-### Useful Links
+## Useful Links
 [3D Model Editor](https://threejs.org/editor/)
 
 [3D Model Compressor](https://www.ilove3dm.com/compress-model)
