@@ -17,12 +17,22 @@ npm run build
 npm start
 ```
 #### Options
-Get query parameters
-```javascript
-@texture;  // custom scene map src(relative path)
-@enry;     // specify scene entry point(local spots)
-@model;    // load local model(glb/gltf) into scene
-```
+Get query parameters, eg: `/?texture=texture.hdr&transparency=1&shadow=1&antialias=1&roughness=0.25&metalness=0.85&fov=75&entry=entry_point&model=model.glb`
+
+| Param | Type | Desc | Default |
+| :---- | :---- | :---- | :---- |
+| texture | String | Path of scene map(panorama/model envioument) | `` |
+| entry | String | Context(presets) of entry scene | `global_map` |
+| fov | Number | default FOV scale | `52` |
+| fovs | Number | default mobile FOV scale | `88` |
+|  |  |  |  |
+| model | String | Path of 3d model | `` |
+| roughness | Number | Roughness of 3d model | `0.15` |
+| metalness | Number | Metalness of 3d model | `0.15` |
+| transparency | Any | Apply loaded texture on 3d model scene as background/env | `false` |
+| shadow | Any | Enable model shadows | `false` |
+| antialias | Any | Enable model Antialias | `false` |
+
 ## 3d scene viewer
 load image(image/video) as [3d-panorama views](https://node.2broear.com/?texture&entry&model);
 
