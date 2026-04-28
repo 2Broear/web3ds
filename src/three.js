@@ -6,8 +6,8 @@ import {
 } from './utils.js';
 import {
     Scene, WebGLRenderer, PerspectiveCamera,
-    HemisphereLight, DirectionalLight, SpotLight, PointLight,
-    // HemisphereLightHelper, DirectionalLightHelper, SpotLightHelper, PointLightHelper,  // build size issue
+    Light, HemisphereLight, DirectionalLight, SpotLight, PointLight, AmbientLight,
+    // HemisphereLightHelper, DirectionalLightHelper, SpotLightHelper, PointLightHelper, AmbientLightHelper, // build size issue
     // CameraHelper, GridHelper, AxesHelper,  // build size issuess
     Clock, Box3, MathUtils, 
     Color, Raycaster, Vector2, //Vector3,
@@ -59,6 +59,7 @@ class threeBase {
     }
     
     setupLight(_lights) {
+        if (_lights.ambien.enabled) this._mods.setupSceneLights('AmbientLight', _lights.ambien, true);
         if (_lights.directional.enabled) this._mods.setupSceneLights('DirectionalLight', _lights.directional, true);
         if (_lights.hemisphere.enabled) this._mods.setupSceneLights('HemisphereLight', _lights.hemisphere, true);
         if (_lights.spot.enabled) this._mods.setupSceneLights('SpotLight', _lights.spot, true);
@@ -141,6 +142,7 @@ class threeView extends threeBase {
         },
         _camera: {
             fov: 60,
+            fovs: 80,
             near: 1,
             far: 2048,
             x: 0.1,
@@ -157,6 +159,15 @@ class threeView extends threeBase {
                 y: 0,
                 z: 0,
                 // position: new Vector3(0, 0.1, 0),
+            },
+            ambien: {
+                enabled: false,
+                helper: 0,
+                colors: 'white',
+                intensity: 0.5,
+                x: 0,
+                y: 0,
+                z: 0,
             },
             directional: {
                 enabled: false,
@@ -862,6 +873,12 @@ class threeView extends threeBase {
             setupSceneLights: (type = 'HemisphereLight', conf = {}, add = false)=> {
                 let lights, helper;
                 switch (type) {
+                    case 'AmbientLight':
+                        lights = new AmbientLight(new Color(conf.colors), new Color(conf.color));
+                        lights = this._util.basics.confRewriter(conf, lights);
+                        lights.position.set(lights.x, lights.y, lights.z);
+                        if (conf.helper) helper = new AmbientLightHelper(lights, lights.helper);
+                        break;
                     case 'HemisphereLight':
                         lights = new HemisphereLight(new Color(conf.colors), new Color(conf.color));
                         lights = this._util.basics.confRewriter(conf, lights);
@@ -1791,21 +1808,17 @@ class threeView extends threeBase {
                     draco.setDecoderPath('/libs/draco/');
                     loader.setDRACOLoader(draco);
                     loader.load(loadSrc, (gltf)=> {
-                        console.log('model loaded', gltf);
-                        // gltf.scene.traverse(function (child) {
-                        //     if ((child as THREE.Mesh).isMesh) {
-                        //         const m = child as THREE.Mesh;
-                        //         m.receiveShadow = true;
-                        //         m.castShadow = true;
-                        //     }
-                        //     if ((child as THREE.Light).isLight) {
-                        //         const l = child as THREE.SpotLight;
-                        //         l.castShadow = true;
-                        //         l.shadow.bias = -0.003;
-                        //         l.shadow.mapSize.width = 2048;
-                        //         l.shadow.mapSize.height = 2048;
-                        //     }
+                        // console.log('model loaded', gltf);
+                        // this._mods.getModelPart(gltf.scene, (mesh)=> {
+                        //     mesh.receiveShadow = true;
+                        //     mesh.castShadow = true;
                         // });
+                        this._mods.getModelPart(gltf.scene, (light)=> {
+                            light.castShadow = true;
+                            light.shadow.bias = -0.003;
+                            light.shadow.mapSize.width = 2048;
+                            light.shadow.mapSize.height = 2048;
+                        }, false, 'Light');
                         callback?.(gltf); //this.scene.add(gltf.scene);
                         this._mods.loadStatus(1);
                     }, (xhr) => {

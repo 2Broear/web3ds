@@ -12,12 +12,12 @@ import {
 const contextPoint = {
     x: 388, y: -88, z: -404,
     px: -100, py: 200, pz: -100,
-    cw: 1024, ch: 1024, cs: 2048,
+    cw: 1024, ch: 1024, cs: 1024 * 2.55,
     width:0, height:0, deepth:1,
 };
 const defaultSpots = {
     global_map: {
-        src: '', //deepal-sl03-inside.jpg
+        src: '', //panorama/global_map.jpg
         // env: [],
         uvs: [0.6754583295687697, 0.8029043481247053, 0.30890971887284235, 0.5107758060045948],
         ctx: ['MINECRAFT', 'GreenForest'],
@@ -37,7 +37,7 @@ const defaultSpots = {
         entry: [],
     },
     minecraft: {
-        // src: 'minecraft-night.jpg', //imgs.2broear.com/2025/05/Ayutthaya_SD60x.mp4
+        // src: 'panorama/minecraft-night.jpg', //imgs.2broear.com/2025/05/Ayutthaya_SD60x.mp4
         env: [
             'cube/1.16_panorama_2.webp',
             'cube/1.16_panorama_0.webp',
@@ -64,7 +64,7 @@ const defaultSpots = {
         entry: [],
     },
     empty_room: {
-        src: 'small_empty_room_3_2k.hdr',
+        src: 'panorama/small_empty_room_3_1k.hdr',
         uvs: [0.031337077604052466, 0.07535424120148843, 0.34646601500275254, 0.5660095586586424],
         ctx: ['SMALL', 'EMPTY ROOM'],
         // define mesh point
@@ -78,32 +78,73 @@ const defaultSpots = {
         // define entry point
         entry: [],
     },
-    tesla_model_3: {
+    defaults_spot: {
+        ctx: ['Exhibition', 'GOODS'],
+        point: contextPoint,
         entry: [],
-        ctx: ['Model 3 2018', 'TESLA'],
-        point: contextPoint
     },
-    tesla_cybertruck: {
+    mbti_personality: {
+        ctx: ['16 Personalities', 'MBTI'],
+        point: contextPoint,
         entry: [],
-        ctx: ['CyberTruck', 'TESLA'],
-        point: contextPoint
-    },
-    macbook_pro: {
-        entry: [],
-        ctx: ['MacBook Pro', 'APPLE'],
-        point: contextPoint
     },
     mbti_enfp: {
-        entry: [],
         ctx: ['Campaigner', 'ENFP-A'],
-        point: contextPoint
+        point: contextPoint,
+        entry: [],
+    },
+    tesla_model_3: {
+        ctx: ['Model 3 2018', 'TESLA'],
+        point: contextPoint,
+        entry: [],
+    },
+    tesla_cybertruck: {
+        ctx: ['CyberTruck', 'TESLA'],
+        point: contextPoint,
+        entry: [],
+    },
+    jbl_partybox_110: {
+        ctx: ['PartyBox 110', 'JBL'],
+        point: contextPoint,
+        entry: [],
+    },
+    macbook_pro: {
+        ctx: ['MacBook Pro 2021', 'APPLE'],
+        point: contextPoint,
+        entry: [],
+    },
+    ipad_pro: {
+        ctx: ['iPad Pro 2021', 'APPLE'],
+        point: contextPoint,
+        entry: [],
+    },
+    iphone_15pm: {
+        ctx: ['iPhone 15 Pro Max', 'APPLE'],
+        point: contextPoint,
+        entry: [],
+    },
+    iphone_se2: {
+        ctx: ['iPhone SE 2', 'APPLE'],
+        point: contextPoint,
+        entry: [],
+    },
+    iphone_se: {
+        ctx: ['iPhone SE', 'APPLE'],
+        point: contextPoint,
+        entry: [],
     },
 };
 
-// let defaultViews;
+let transparencyTexture = false;
+let modelShadows = false;
+let modelAntialias = false;
+let modelRoughness = 0.15;
+let modelMetalness = 0.25;
+let defaultFov = 52;
+let defaultFovs = 88;
 let defaultModel;
-let defaultTexture = defaultSpots.global_map;
 let defaultEntrySpot;
+let defaultTexture = defaultSpots.global_map;
 let defaultSpotArray = ['//imgs.2broear.com/2025/04/texture63crf2pass.webm', '//imgs.2broear.com/2025/04/texture.mov', '//imgs.2broear.com/2025/04/texture.mp4']; //['./assets/3d/texture/nav5x.gif'];
 const mobileSpotArray = [{
     url: './assets/3d/texture/sequences/14+/tiny/sequence',
@@ -139,19 +180,26 @@ if (typeof URLSearchParams !== 'undefined' && URLSearchParams) {
 }
 
 if (queryArray.size > 0) {
+    const fov = queryArray.get('fov');
+    const fovs = queryArray.get('fovs');
     const entry = queryArray.get('entry');
     const model = queryArray.get('model');
     const texture = queryArray.get('texture');
-    if (queryArray.has('model') && model !== '') defaultModel = decodeURIComponent(model);
-    if (queryArray.has('entry') && entry !== '') defaultEntrySpot = decodeURIComponent(entry);
-    if (queryArray.has('texture') && texture !== '') {
-        defaultTexture.src = decodeURIComponent(texture);
-        // try {
-        //     defaultTexture = JSON.parse(JSON.stringify(texture));
-        // } catch (e) {
-        //     console.warn(e);
-        // }
-    }
+    const transparent = queryArray.get('transparency');
+    const shadow = queryArray.get('shadow');
+    const antialias = queryArray.get('antialias');
+    const roughness = queryArray.get('roughness');
+    const metalness = queryArray.get('metalness');
+    if (fov && fov !== '') defaultFov = fov;
+    if (fovs && fovs !== '') defaultFovs = fovs;
+    if (model && model !== '') defaultModel = decodeURIComponent(model);
+    if (entry && entry !== '') defaultEntrySpot = decodeURIComponent(entry);
+    if (roughness && roughness !== '') modelRoughness = +roughness;
+    if (metalness && metalness !== '') modelMetalness = +metalness;
+    if (transparent && transparent !== '') transparencyTexture = true;
+    if (shadow && shadow !== '') modelShadows = true;
+    if (antialias && antialias !== '') modelAntialias = true;
+    if (texture && texture !== '') defaultTexture.src = decodeURIComponent(texture);
 }
 
 
@@ -173,26 +221,32 @@ if (defaultModel) {
     const diyModel = new threeView();
     diyModel.animateInit({
         _scene: {
-            antialias: true,
+            antialias: modelAntialias,
             // AxesHelper: 500,
         },
         _camera: {
-            fov: 58,
-            fovs: 88,
+            fov: defaultFov,
+            fovs: defaultFovs,
             far: 9999,
             x: 500,
-            y: 200,
+            y: 100,
             z: 300,
             // helper: 500,
         },
         _lights: {
+            ambien: {
+                enabled: true,
+                intensity: 0.25,
+            },
             hemisphere: {
                 // intensity: 1,
             },
             directional: {
                 enabled: true,
-                // intensity: 1,
+                intensity: 0.15,
                 y: 500,
+                // x: 550,
+                z: 400
             }
         },
         _control: {
@@ -205,17 +259,17 @@ if (defaultModel) {
                 // debug: true,
             },
             rotateSpeed: 0.5,
-            maxPolarAngle: 0.98 * (Math.PI / 2),
+            maxPolarAngle: 0.99 * (Math.PI / 2),
             autoRotate: true,
         },
         load: {
             dom: document.querySelector('.diyModel'),
             // model: './assets/3d/tesla_2018_model_3/scene.gltf',
             // model: './assets/3d/draco/tesla_2018_model_3_compresseds.glb',
-            // model: './assets/3d/draco/tesla_cybertruck-x200_compresseds.glb',
+            model: './assets/3d/draco/tesla_cybertruck-x200_compresseds.glb',
             // model: './assets/3d/draco/apple_macbook_pro_16_inch_2021-x100_compresseds.glb',
             // model: './assets/3d/draco/mbti_enfp-textured-x200_compresseds.glb',
-            model: './assets/3d/draco/mbti_enfp-x200_compresseds.glb',
+            // model: './assets/3d/draco/mbti_enfp-x200_compresseds.glb',
             // path: '', // absolute url(online-res)
             // holder: '//imgs.2broear.com/2025/06/placeholder.jpg',
             // env: [
@@ -274,13 +328,16 @@ if (defaultModel) {
         three._mods.mapSingleLoader(defaultTexture.src, (map)=> loadback(map), undefined, (err)=> loadback());
         function loadback(map) {
             if (map) {
-                // three.scene.background = map;  // 设置背景贴图
-                // three.scene.environment = map;  // 设置环境贴图
-                // floor.material.envMap = map;
-                sphere.material.transparent = false;
-                sphere.material.opacity = 1;
-                sphere.material.map = map;
-                sphere.material.needsUpdate = true;
+                three.scene.environment = map;  // 设置环境贴图（Object reflection）
+                if (!transparencyTexture) {
+                    three.scene.background = map;  // 设置背景贴图
+                    floor.material.envMap = map; //（Object reflection）
+                }
+                // // no need for transparent-sphere on model
+                // sphere.material.transparent = false;
+                // sphere.material.opacity = 1;
+                // sphere.material.map = map;
+                // sphere.material.needsUpdate = true;
                 // 缓存贴图
                 three.cacheControlSet(defaultTexture.src, map);
             }
@@ -304,14 +361,13 @@ if (defaultModel) {
                 three.scene.add(target);
                 // adjust floor/context(if available) position to lowest-side
                 floor.position.y = modelSize.min.y; //target.position.y = modelSize.max.y;
-                floor.position.y = modelSize.min.y; //target.position.y = modelSize.max.y;
                 // // setup autoRotate after model loaded(with config on)
                 // three.config._control.autoRotate = three.control.autoRotate = true;
                 
                 // 配置模型粗糙度
                 three._mods.getModelPart(target, (mesh)=> {
-                    mesh.material.roughness = 0.15;
-                    mesh.material.metalness = 0.15;  // flash-performance issue
+                    mesh.material.roughness = modelRoughness;
+                    mesh.material.metalness = modelMetalness;  // flash-performance issue
                 });
                 
                 // 配置灯光
@@ -319,13 +375,13 @@ if (defaultModel) {
                 const dropHeight = modelSizeX * 4;
                 const dropLight = three._mods.setupSceneLights('PointLight', {
                     colors: 'white',
-                    intensity: 20,
+                    intensity: 5,
                     distance: dropHeight,
-                    x: 0,
-                    y: (dropHeight-modelSize.min.y) / 1.5,
+                    x: 0, //-100
+                    y: 350, //(dropHeight-modelSize.min.y) / 1.5
                     z: 0,
-                    angle: dropHeight * 1.5,
-                    decay: 0.1,
+                    // angle: 150, //dropHeight * 1.5
+                    decay: 0, //0.1
                     // castShadow: true,
                     shadow: {
                         // mapSize: {
@@ -382,63 +438,64 @@ if (defaultModel) {
                 // const tailLight = three._mods.setupSceneLights('PointLight', pointLightConf, true);
                 
                 // /*** SETUP MESHS && SHADOWS ***/
-                // // enable shadowMap&floor shadow receiver
-                three.renderer.shadowMap.enabled = floor.receiveShadow = true;
-                // // common shadowMapMaterial(note:doNOT use same on MeshBasicMaterial but conf, caused same material.needsUpdate)
-                // const configShadow = {
-                //     color: 0x000000,
-                //     transparent: true,
-                // };
-                // let squareShadow;
-                // let cuboidShadow;
-                
-                // // Sphere
-                // const sphere = three._mods.meshLoader(new SphereGeometry(88, 100, 100), new MeshPhongMaterial({
-                //     color: 0xffffff,
-                // }), (mesh)=> {
-                //     mesh.position.x = modelSizeX;
-                //     mesh.position.y = 10;
-                //     squareShadow = three._mods.meshLoader(new PlaneGeometry(200, 200), new MeshBasicMaterial(configShadow), (mesh)=> {
-                //         mesh.position.x = modelSizeX;
-                //         mesh.position.y = modelSize.min.y + 1;
-                //         mesh.rotation.x = - Math.PI * 0.5;
-                //     }, false, false);
-                // });
-                // // Cuboid
-                // const cuboid = three._mods.meshLoader(new BoxGeometry(88, modelSize.max.y, modelSizeZ), new MeshPhongMaterial({
-                //     color: 0xffffff,
-                // }), (mesh)=> {
-                //     mesh.position.x = -modelSizeX;
-                //     mesh.position.y = -44;
-                //     cuboidShadow = three._mods.meshLoader(new PlaneGeometry(88*1.5, modelSizeZ*1.3), new MeshBasicMaterial(configShadow), (meshs)=> {
-                //         meshs.position.x = mesh.position.x;
-                //         meshs.position.y = modelSize.min.y + 1;
-                //         meshs.rotation.x = - Math.PI * 0.5;
-                //     }, false, false);
-                // });
-                
-                // // Model
-                // const modelShadow = three._mods.meshLoader(new PlaneGeometry(modelSizeX, modelSizeZ), new MeshBasicMaterial(configShadow), (mesh)=> {
-                //     mesh.position.y = modelSize.min.y + 1;
-                //     mesh.rotation.x = - Math.PI * 0.5;
-                // }, false, false);
-                // three._mods.getModelPart(['primary', 'JUST_BLACK', 'dvorright', 'mirror', 'movsteer'], (mesh)=> {
-                //     mesh.castShadow = true; // mesh.receiveShadow = true; // receive shadow from other lights (occure wave-issue)
-                // }, true);
-                
-                target.traverse(child=> {
-                    if(child.isMesh) child.castShadow = true; // child.receiveShadow = true;
-                });
-                
-                // // CAST SHADOW SET(rtr)
-                // sphere.castShadow = cuboid.castShadow = true;
-                // // cast lots of performance issue!!
-                dropLight.castShadow = true;
-                // // MUST setup shadow mapSize incase of Performance issue
-                dropLight.shadow.mapSize.set(2048, 2048);
-                // // three.renderer.shadowMap.autoUpdate = false;
-                // // three.renderer.shadowMap.needUpdate = true;
-                
+                if (modelShadows) {
+                    // // enable shadowMap&floor shadow receiver
+                    three.renderer.shadowMap.enabled = floor.receiveShadow = true;
+                    // // common shadowMapMaterial(note:doNOT use same on MeshBasicMaterial but conf, caused same material.needsUpdate)
+                    // const configShadow = {
+                    //     color: 0x000000,
+                    //     transparent: true,
+                    // };
+                    // let squareShadow;
+                    // let cuboidShadow;
+                    
+                    // // Sphere
+                    // const sphere = three._mods.meshLoader(new SphereGeometry(88, 100, 100), new MeshPhongMaterial({
+                    //     color: 0xffffff,
+                    // }), (mesh)=> {
+                    //     mesh.position.x = modelSizeX;
+                    //     mesh.position.y = 10;
+                    //     squareShadow = three._mods.meshLoader(new PlaneGeometry(200, 200), new MeshBasicMaterial(configShadow), (mesh)=> {
+                    //         mesh.position.x = modelSizeX;
+                    //         mesh.position.y = modelSize.min.y + 1;
+                    //         mesh.rotation.x = - Math.PI * 0.5;
+                    //     }, false, false);
+                    // });
+                    // // Cuboid
+                    // const cuboid = three._mods.meshLoader(new BoxGeometry(88, modelSize.max.y, modelSizeZ), new MeshPhongMaterial({
+                    //     color: 0xffffff,
+                    // }), (mesh)=> {
+                    //     mesh.position.x = -modelSizeX;
+                    //     mesh.position.y = -44;
+                    //     cuboidShadow = three._mods.meshLoader(new PlaneGeometry(88*1.5, modelSizeZ*1.3), new MeshBasicMaterial(configShadow), (meshs)=> {
+                    //         meshs.position.x = mesh.position.x;
+                    //         meshs.position.y = modelSize.min.y + 1;
+                    //         meshs.rotation.x = - Math.PI * 0.5;
+                    //     }, false, false);
+                    // });
+                    
+                    // // Model
+                    // const modelShadow = three._mods.meshLoader(new PlaneGeometry(modelSizeX, modelSizeZ), new MeshBasicMaterial(configShadow), (mesh)=> {
+                    //     mesh.position.y = modelSize.min.y + 1;
+                    //     mesh.rotation.x = - Math.PI * 0.5;
+                    // }, false, false);
+                    // three._mods.getModelPart(['primary', 'JUST_BLACK', 'dvorright', 'mirror', 'movsteer'], (mesh)=> {
+                    //     mesh.castShadow = true; // mesh.receiveShadow = true; // receive shadow from other lights (occure wave-issue)
+                    // }, true);
+                    
+                    target.traverse(child=> {
+                        if(child.isMesh) child.castShadow = true; // child.receiveShadow = true;
+                    });
+                    
+                    // // CAST SHADOW SET(rtr)
+                    // sphere.castShadow = cuboid.castShadow = true;
+                    // // cast lots of performance issue!!
+                    dropLight.castShadow = true;
+                    // // MUST setup shadow mapSize incase of Performance issue
+                    dropLight.shadow.mapSize.set(2048, 2048);
+                    // // three.renderer.shadowMap.autoUpdate = false;
+                    // // three.renderer.shadowMap.needUpdate = true;
+                }
                 // /*** SETUP MESH MATERIALS  ***/
                 // const materialList = ['floor-s3.jpg', 'entrance.png', 'floor3.jpg', 'shadow.png', 'shadows.png'];
                 // three._mods.mapMultiLoader(materialList, ()=> {
@@ -632,8 +689,8 @@ if (defaultModel) {
     const threejsInstance = new threeView();
     threejsInstance.animateInit({
         _camera: {
-            fov: 66,
-            fovs: 88,
+            fov: defaultFov,
+            fovs: defaultFovs,
             // far: 1999,
             x: -1,
             y: 0,
@@ -651,6 +708,9 @@ if (defaultModel) {
             },
         },
         _lights: {
+            ambien: {
+                // enabled: true,
+            },
             hemisphere: {
                 intensity: 2,
                 // y: 10,
@@ -834,6 +894,4 @@ if (defaultModel) {
             });
         }
     });
-    // const diyModel = new threeView();
-    // console.log(1,diyModel)
 }
